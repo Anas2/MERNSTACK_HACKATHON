@@ -347,7 +347,7 @@ const authController = {
 
         const updateUsernameSchema = Joi.object({
             _id: Joi.string().required(),
-            email:Joi.string(),
+            email: Joi.string(),
             username: Joi.string().required(),
         })
 
@@ -356,23 +356,14 @@ const authController = {
         if (error) {
             return next(error);
         }
-        
+
         let user;
 
         const { _id, username } = req.body
         try {
 
-           
-
             user = await User.findOne({ _id: _id });
-            
-             if (user.username===username) {
-                const err={
-                    status:201,
-                    message:"username already exist"
-                }
-                return next(err);
-            }
+
 
             if (!user) {
                 const err = {
@@ -382,9 +373,17 @@ const authController = {
                 return next(err)
             }
 
+            if (user.username == username) {
+                const err = {
+                    message: "username already exist",
+                    status: 401
+                }
+                return next(err);
+            }
+
             try {
 
-                user = await User.findOne({ _id: _id });
+                // user = await User.findOne({ _id: _id });
 
                 user.username = username;
 
