@@ -296,7 +296,7 @@ const authController = {
                 return next(err)
             }
 
-            if(password == newPassword ){
+            if (password == newPassword) {
                 const err = {
                     message: " Current & New Password Should Not be Same ",
                     status: 401
@@ -309,7 +309,7 @@ const authController = {
             console.log("old pass", compairePassword);
             if (!compairePassword) {
                 const err = {
-                    message: " invalid username or password ",
+                    message: " invalid password ",
                     status: 401
                 }
                 return next(err);
@@ -338,39 +338,89 @@ const authController = {
 
 
         const userDto = new UserDto(user);
-        return res.status(200).json({ user: userDto });
+        return res.status(200).json({ user: userDto, message: "Password Successfully Updated" });
 
+
+    },
+
+    async updateUsername(req, res, next) {
+
+        const updateUsernameSchema = Joi.object({
+            _id: Joi.string().required(),
+            username: Joi.string().required(),
+        })
+
+        const { error } = updateUsernameSchema.validate(req.body);
+
+        if (error) {
+            return next(error);
+        }
+        let user;
+
+        const { _id, username } = req.body
+        try {
+
+
+            user = await User.findOne({ _id: _id });
+
+            if (!user) {
+                const err = {
+                    message: " invalid user ",
+                    status: 401
+                }
+                return next(err)
+            }
+
+            try {
+
+                user = await User.findOne({ _id: _id });
+
+                user.username = username;
+
+                const result = await user.save();
+
+            } catch (error) {
+                return next(error);
+            }
+
+
+            const userDto = new UserDto(user);
+            return res.status(200).json({ user: userDto, message: "Username Successfully Updated " });
+
+
+        } catch (error) {
+            return next(error);
+        }
+
+
+
+
+        // getUsers: async (req, res) => {
+        //     UserModel.find().then((result) => {
+        //         res.send(sendResponse(true, result));
+        //     }).catch((err) => { });
+        // },
+        // protected: async (req, res, next) => {
+        //     let token = req.headers.authorization;
+        //     console.log(token);
+        //     if (token) {
+        //         token = token.split(" ")[1];
+
+        //         jwtToken.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+        //             if (err) {
+        //                 res.send(sendResponse(false, null, "Unauthorized")).status(403);
+        //             } else {
+        //                 console.log(decoded, "here we gooo");
+        //                 next();
+        //             }
+        //         })
+        //     } else {
+
+        //         res.send(sendResponse(false, null, "Unauthorized")).status(403);
+        //     }
+        // },
 
     }
-
-
-
-
-    // getUsers: async (req, res) => {
-    //     UserModel.find().then((result) => {
-    //         res.send(sendResponse(true, result));
-    //     }).catch((err) => { });
-    // },
-    // protected: async (req, res, next) => {
-    //     let token = req.headers.authorization;
-    //     console.log(token);
-    //     if (token) {
-    //         token = token.split(" ")[1];
-
-    //         jwtToken.verify(token, process.env.SECRET_KEY, (err, decoded) => {
-    //             if (err) {
-    //                 res.send(sendResponse(false, null, "Unauthorized")).status(403);
-    //             } else {
-    //                 console.log(decoded, "here we gooo");
-    //                 next();
-    //             }
-    //         })
-    //     } else {
-
-    //         res.send(sendResponse(false, null, "Unauthorized")).status(403);
-    //     }
-    // },
-
 }
 
 

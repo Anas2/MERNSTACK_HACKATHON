@@ -3,6 +3,7 @@ const UserMode = require('../Model/userModel')
 const UserDto = require('../Dto/userDto');
 const auth = async (req, res, next) => {
 
+    console.log(req.headers.authorization, "Here");
     try {
         console.log("kkkk");
         // 1 refresh, access token validattion
@@ -18,19 +19,26 @@ const auth = async (req, res, next) => {
 
         let _id;
         try {
+            accessToken = accessToken.split(" ")[1];
             _id = JWTService.verifyAccessToken(accessToken);
 
             // JWTService.verifyRefreshToken(refreshToken);
 
         } catch (error) {
 
-            return next(error);
+            const err = {
+                status: 401,
+                message: "Unauthorized"
+            }
+
+            return next(err);
 
         }
         let user;
         try {
             user = await UserMode.findOne({ _id: _id });
         } catch (error) {
+
             return next(error);
         }
 
@@ -41,7 +49,8 @@ const auth = async (req, res, next) => {
         next();
 
     } catch (error) {
-        
+
+
         return next(error);
     }
 }
