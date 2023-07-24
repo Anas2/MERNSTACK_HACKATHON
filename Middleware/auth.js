@@ -8,6 +8,7 @@ const auth = async (req, res, next) => {
         console.log("kkkk");
         // 1 refresh, access token validattion
         let accessToken = req.headers.authorization;
+        console.log(accessToken)
 
         if (!accessToken) {
             let err = {
@@ -19,7 +20,7 @@ const auth = async (req, res, next) => {
 
         let _id;
         try {
-            accessToken = accessToken.split(" ")[1];
+            //accessToken = accessToken.split(" ")[1];
             _id = JWTService.verifyAccessToken(accessToken);
 
             // JWTService.verifyRefreshToken(refreshToken);
