@@ -135,29 +135,6 @@ const authController = {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         // password = hashPassword;
 
         // const existingUser = await UserModel.findOne({ email });
@@ -343,7 +320,9 @@ const authController = {
 
     },
 
+    // update Username 
     async updateUsername(req, res, next) {
+
 
         const updateUsernameSchema = Joi.object({
             _id: Joi.string().required(),
@@ -360,6 +339,7 @@ const authController = {
         let user;
 
         const { _id, username } = req.body
+        // console.log(req.userAuthentication,"here is authUser");
         try {
 
             user = await User.findOne({ _id: _id });
@@ -384,10 +364,11 @@ const authController = {
             try {
 
                 // user = await User.findOne({ _id: _id });
+                const userUpdated = await User.updateOne({ _id: _id }, { $set: { username: username } });
 
-                user.username = username;
+                // user.username = username;
 
-                const result = await user.save();
+                // const result = await user.save();
 
             } catch (error) {
                 return next(error);
@@ -395,7 +376,7 @@ const authController = {
 
 
             const userDto = new UserDto(user);
-            return res.status(200).json({ user: userDto, message: "Username Successfully Updated " });
+            return res.status(200).json({ user: userDto, message: "Username Successfully Updated ", auth: req.userAuthentication });
 
 
         } catch (error) {
@@ -430,7 +411,156 @@ const authController = {
         //     }
         // },
 
+    },
+
+    // uploadImage 
+    async uploadImage(req, res, next) {
+
+        const validateImageSchema = Joi.object({
+            _id: Joi.string().required(),
+            photo: Joi.string().required()
+
+        })
+
+        const { error } = validateImageSchema.validate(req.body);
+
+        if (error) {
+
+            return next(error);
+        }
+
+        const { _id, photo } = req.body;
+
+        const user = await User.findOne({ _id: _id });
+
+        if (!user) {
+            const err = {
+                status: 404,
+                message: "user not found"
+            }
+            return next(err);
+        }
+
+        const replacedImg = photo.replace(/^data:image\/(png|jpg|jpeg);base64,/, '');
+
+        // read as buffer 
+        const buffer = Buffer.from(replacedImg, 'base64');
+
+        // allot a random name
+        const imagePath = `${Date.now()}-${_id}.png`;
+
+        // save locally
+        try {
+            fs.writeFileSync(`Storage/${imagePath}`, buffer);
+
+        } catch (error) {
+            return next(error);
+        }
+
+        await User.updateOne({ _id: _id },
+            { photo: `${BACKEND_SERVER_PATH}/Storage/${imagePath}` }
+        );
+        return res.status(200).json({ message: "image uploaded successfully.." });
+
+
+    },
+
+    // upadate user 
+    async updateUser(req, res, next) {
+
+
+        const { username, email, _id, photo } = req.body;
+
+        // delete pre photo 
+        // save new photo 
+        let user;
+        let userDto;
+        try {
+
+            user = await User.findOne({ _id: _id });
+            if (!user) {
+                const err = {
+                    status: 404,
+                    message: "user not found"
+                }
+                return next(err);
+            }
+
+            // const userArr = ["id", "username", "email"];
+            // const validationArr = [];
+
+
+            // for (let i = 0; i < userArr.length; i++) {
+            //     console.log(Object.values(req.body)[i] == user[userArr[i]]);
+            //     if (userArr[i] in req.body && Object.values(req.body)[i] == user[userArr[i]]) {
+
+            //         validationArr.push(userArr[i]);
+
+            //     }
+
+            // }
+
+            // if (validationArr.length > 0) {
+            //     console.log("inside validator");
+            //     const err = {
+            //         status: 200,
+            //         message: `${validationArr} already exist`
+            //     }
+            //     return next(err);
+            // }
+
+        } catch (error) {
+            return next(error)
+        }
+
+        if (photo) {
+
+            let previousPhoto = user.photo //ye cheez dekhni hai console krwa kr k kiya araha hai yaha
+            previousPhoto = previousPhoto.split('/').at(-1);
+            console.log(previousPhoto, "here");
+            // delete photo 
+            fs.unlinkSync(`Storage/${previousPhoto}`);
+
+            // Insert New Photo
+
+            const replacedImg = photo.replace(/^data:image\/(png|jpg|jpeg);base64,/, '');
+
+            // read as buffer 
+            const buffer = Buffer.from(replacedImg, 'base64');
+
+            // allot a random name
+            const imagePath = `${Date.now()}-${_id}.png`;
+
+            // save locally
+            try {
+                fs.writeFileSync(`Storage/${imagePath}`, buffer);
+
+            } catch (error) {
+                return next(error);
+            }
+
+            await User.updateOne({ _id: _id },
+                { username: username, email: email, photoPath: `${BACKEND_SERVER_PATH}/Storage/${imagePath}` }
+            );
+        }
+        // else {
+        // await User.updateOne({ _id: _id }, { username: username, email: email });
+        // }
+
+        try {
+            await User.updateOne({ _id: _id }, { username: username, email: email });
+        } catch (error) {
+            return next(error);
+        }
+
+        user = await User.findOne({ _id: _id });
+        userDto = new UserDto(user);
+
+        return res.status(200).json({ user: userDto, message: "successfully updated.. ", auth: req.userAuthentication });
+
+
     }
+
 }
 
 

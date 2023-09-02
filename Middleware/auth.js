@@ -45,8 +45,9 @@ const auth = async (req, res, next) => {
 
         const userDto = new UserDto(user);
 
-        req.user = userDto;
-
+        req.authUser = userDto;
+        req.userAuthentication = true
+        
         next();
 
     } catch (error) {
