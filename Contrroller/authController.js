@@ -77,7 +77,7 @@ const authController = {
 
         // save locally
         try {
-            fs.writeFileSync(`Storage/${imagePath}`, buffer);
+            fs.writeFileSync(`storage/${imagePath}`, buffer);
 
         } catch (error) {
             return next(error);
@@ -451,14 +451,14 @@ const authController = {
 
         // save locally
         try {
-            fs.writeFileSync(`Storage/${imagePath}`, buffer);
+            fs.writeFileSync(`storage/${imagePath}`, buffer);
 
         } catch (error) {
             return next(error);
         }
 
         await User.updateOne({ _id: _id },
-            { photo: `${BACKEND_SERVER_PATH}/Storage/${imagePath}` }
+            { photo: `${BACKEND_SERVER_PATH}/storage/${imagePath}` }
         );
         return res.status(200).json({ message: "image uploaded successfully.." });
 
@@ -515,11 +515,22 @@ const authController = {
 
         if (photo) {
 
+            // if (photo === user.photo) {
+            //     const error = {
+            //         status: 403,
+            //         message: "image already exist.."
+            //     }
+            //     return next(error);
+            // }
+
             let previousPhoto = user.photo //ye cheez dekhni hai console krwa kr k kiya araha hai yaha
+            console.log(previousPhoto, "============>");
             previousPhoto = previousPhoto.split('/').at(-1);
             console.log(previousPhoto, "here");
+
+
             // delete photo 
-            fs.unlinkSync(`Storage/${previousPhoto}`);
+            fs.unlinkSync(`storage/${previousPhoto}`);
 
             // Insert New Photo
 
@@ -533,14 +544,14 @@ const authController = {
 
             // save locally
             try {
-                fs.writeFileSync(`Storage/${imagePath}`, buffer);
+                fs.writeFileSync(`storage/${imagePath}`, buffer);
 
             } catch (error) {
                 return next(error);
             }
 
             await User.updateOne({ _id: _id },
-                { username: username, email: email, photoPath: `${BACKEND_SERVER_PATH}/Storage/${imagePath}` }
+                { username: username, email: email, photoPath: `${BACKEND_SERVER_PATH}/storage/${imagePath}` }
             );
         }
         // else {
